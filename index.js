@@ -30,9 +30,9 @@ function drawGrid(ctx) {
 function clear(ctx) {
   ctx.lineWidth = 1;
   ctx.strokeStyle = "black";
-  ctx.beginPath();
-  ctx.rect(0, 0, canvasSize, canvasSize);
-  ctx.stroke();
+  //ctx.beginPath();
+  ctx.clearRect(0, 0, canvasSize, canvasSize);
+  //ctx.fill();
 }
 
 function drawTile(ctx, idx, posx, posy) {
@@ -57,7 +57,54 @@ function rollAll() {
   }
 }
 
-image.addEventListener("load", (e) => {
-  drawTile(ctx, 4, 160, 160);
+//const TWEEN = require("@tweenjs/tween.js");
+
+/**
+ * load sprite 1
+ * show on x,y
+ * for 10 seconds - move to x2,y2, animate
+ * s:0, load sprite 2
+ * frame1 - show sprite at x,y
+ * move to x2,y2 for 10 frames
+ * frame10 - show sprite1 at x,y,
+ * move to x2,y2 for 10 frames, animated
+ */
+
+const pos = { x: 0, y: 0 };
+
+function loop(frame) {
+  clear(ctx);
   drawGrid(ctx);
+  drawTile(ctx, 4, Math.floor(pos.x * 40), Math.floor(pos.y * 40));
+}
+
+var tween = new TWEEN.Tween(pos);
+
+image.addEventListener("load", (e) => {
+  let frame = 1;
+  const fps = 10;
+
+  tween.to({ x: 8, y: 8 }, 2000);
+  tween.start();
+  tween.repeat(Infinity);
+  tween.yoyo(true);
+  const startTime = new Date().getTime();
+  let last = startTime;
+  window.setInterval(() => {
+    clear(ctx);
+    const now = new Date().getTime();
+    try {
+      tween.update(last);
+    } catch (e) {
+      console.warn("Tween update failed", e);
+    }
+    try {
+      loop(frame);
+    } catch (e) {
+      console.warn("Loop update failed", e);
+    }
+
+    frame++;
+    last = now;
+  }, 1000 / fps);
 });
